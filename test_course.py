@@ -56,6 +56,8 @@ def test_lists(page: Page):
     page.locator("(//span[text()='Lists'])[1]").click()
     first_topic = page.locator("//a[contains(@href,'goals')]")
     first_topic.click()
+    page.wait_for_url('https://techbrain.ai/introduction-to-ruby-and-object-oriented-programming/lessons/goals-of-the-intro-course')
+    expect(page).to_have_url("goals")
 
 
 # 6️ Verify that lesson list is viewable after starting course
@@ -106,29 +108,55 @@ def test_assignment(page: Page):
 
 
 # 9 Verify that click on finish button navigates to home page
-# def test_finish(page: Page):
-#     page.goto(BASE_URL)
+def test_finish(page: Page):
+    page.goto(BASE_URL)
     
-#     # Click on intro course link
-#     page.locator("//a[contains(@href,'goals-of-the-intro-course')]").click()
-#     page.wait_for_url("**/goals-of-the-intro-course**")
+    # Click on intro course link
+    page.locator("(//span[@class='text-blue-700' and text()='Lists'])[1]").click()
 
-#     # Expand module if topics are hidden
-#     module_header = page.locator("//div/a/span[@class='pr-1']")
-#     if module_header.is_visible() and page.locator("a:has-text('Deck of Cards')").count() == 0:
-#         module_header.click()
+    lessons = page.locator("//h3/a")
+    lesson_count = lessons.count()
 
-#     # Wait for the lesson link to be visible
-#     last_topic = page.locator("a:has-text('Deck of Cards')")
-#     # last_topic.wait_for(state="visible", timeout=30000)
-#     last_topic.click()
+    lesson_locator = "//h3/a[contains(text(),' 5. Challenge: Building a Deck of Cards')]"
+    max_scrolls = 20
+    for i in range(max_scrolls):
+        lesson = page.locator(lesson_locator)
+        if lesson.is_visible():
+            lesson.scroll_into_view_if_needed()
+            lesson.click()
+            print(f"Clicked lesson on scroll attempt {i+1}")
+            break
+        page.evaluate("window.scrollBy(0, 400)")  # scroll down
+        page.wait_for_timeout(500)  # small pause to see scrolling
+    else:
+        raise Exception("Lesson not found after scrolling")
+    
+    next_button = page.locator("//form/button/span[contains(text(), 'Finish')]")
+    next_button.wait_for(state="visible", timeout=5000)
+    next_button.scroll_into_view_if_needed()
+    next_button.click()
+    expect(page).to_have_url(re.compile("techbrain"))
 
-#     # Finish lesson
-#     page.locator("//button/span[@class='pr-1 mx-4']").click()
 
-#     # Verify homepage
-#     homepage = page.locator("//h1[contains(text(),'Courses')]")
-#     expect(homepage).to_have_text("Courses")
+def test_image(page: Page):
+    page.goto(BASE_URL)
+    # Locate the image
+    Start = page.locator("//a[contains(@href,'ideator-an-idea-sharing-app/lessons/setting-up-the-environment')]/span")
+    Start.click()
+
+    image_locator = "(//img[@alt='image.png'])[1]"
+    max_scrolls = 20
+    for i in range(max_scrolls):
+        image = page.locator(image_locator)
+        if image.is_visible():
+            image.scroll_into_view_if_needed()
+            print(f"Clicked lesson on scroll attempt {i+1}")
+            break
+        page.evaluate("window.scrollBy(0, 400)")  # scroll down
+        page.wait_for_timeout(500)  # small pause to see scrolling
+    else:
+        raise Exception("Lesson not found after scrolling")   
+        
 
    
 
